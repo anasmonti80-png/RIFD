@@ -8,11 +8,13 @@
 
 ## التجربة من GitHub Pages
 
-بعد إنشاء المستودع باسم **RIFD** ورفع محتوياته:
+تم إعداد GitHub Pages للنشر من الفرع `main` والجذر `/(root)`، بينما يفحص سير العمل **RIFD code validation** كود JavaScript بصورة مستقلة. هذا يمنع تعارض طريقتَي النشر.
 
-1. سير العمل يحاول تفعيل GitHub Pages تلقائيًا. إذا فشل، من **Settings → Pages → Build and deployment → Source** اختر **GitHub Actions**.
-2. انتقل إلى **Actions** وتحقق من نجاح سير العمل **Deploy RIFD demo to GitHub Pages** (وقد يحتاج تشغيله يدويًا للمرة الأولى).
-3. افتح عنوان Pages الذي يظهر في نتيجة النشر، وغالبًا يكون `https://anasmonti80-png.github.io/RIFD/` **بعد التفعيل الفعلي فقط**.
+1. من **Settings → Pages → Build and deployment** تأكد أن Source = **Deploy from a branch**، وأن Branch = **main / (root)**.
+2. من **Actions** راجع نجاح فحص **RIFD code validation** ونجاح **pages build and deployment** المنفصل.
+3. رابط النسخة التجريبية: https://anasmonti80-png.github.io/RIFD/ .
+
+مهم: نجاح نشر Pages يعني أن ملفات الموقع نُشرت، ولا يعني أن جميع وظائفه اختُبرت في المتصفح على كل الأجهزة.
 
 الواجهة متاحة للعرض من الجوال والمتصفح، لكن كل متصفح يحتفظ ببياناته المستقلة. لا توجد مزامنة بين الأجهزة.
 
@@ -33,7 +35,7 @@
 | `RIFD.html` | نسخة التشغيل المحلي |
 | `RIFD-START.bat` و `Run-RIFD.ps1` | تشغيل محلي على ويندوز دون تثبيت Node/Python |
 | `assets/` | أيقونة PNG ونسختان من الشعار بصيغة WebP |
-| `.github/workflows/deploy.yml` | فحص JavaScript ثم نشر Pages |
+| `.github/workflows/deploy.yml` | فحص JavaScript فقط؛ نشر الموقع يتولاه GitHub Pages من الفرع main |
 | `scripts/check.cjs` | فحص سلامة الملف، بدون اعتماديات خارجية |
 
 ## حفظ البيانات
