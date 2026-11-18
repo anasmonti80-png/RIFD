@@ -1,0 +1,14 @@
+# Never publish real data, credentials, or local exports
+*.log
+*.bak
+*.backup
+*backup*.json
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+node_modules/
+__pycache__/
