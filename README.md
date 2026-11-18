@@ -4,13 +4,13 @@
 
 > ⚠️ **نسخة DEMO وليست نظام إنتاج.** جميع الحسابات والصلاحيات مُحاكاة داخل متصفح الزائر، والبيانات محلية ولا تتزامن بين المستخدمين. لا تُدخل بيانات عمل فعلية أو سرية، ولا تستخدم هذا الملف لخدمة مستخدمين فعليين.
 
-![معاينة لوحة رِفد](docs/RIFD-Dashboard-Preview.png)
+![شعار رِفد](assets/RIFD-Logo.webp)
 
 ## التجربة من GitHub Pages
 
 بعد إنشاء المستودع باسم **RIFD** ورفع محتوياته:
 
-1. من **Settings → Pages → Build and deployment → Source** اختر **GitHub Actions**.
+1. سير العمل يحاول تفعيل GitHub Pages تلقائيًا. إذا فشل، من **Settings → Pages → Build and deployment → Source** اختر **GitHub Actions**.
 2. انتقل إلى **Actions** وتحقق من نجاح سير العمل **Deploy RIFD demo to GitHub Pages** (وقد يحتاج تشغيله يدويًا للمرة الأولى).
 3. افتح عنوان Pages الذي يظهر في نتيجة النشر، وغالبًا يكون `https://anasmonti80-png.github.io/RIFD/` **بعد التفعيل الفعلي فقط**.
 
