@@ -1,59 +1,82 @@
-# RIFD local demonstration server for Windows PowerShell 5.1 or later.
-# Serves the demo only on loopback. Not intended for deployment to a network.
+# RIFD portable local preview. Windows PowerShell 5.1+; loopback only.
+# This is not a production web server and does not synchronize browser data.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$html = Join-Path $root 'RIFD.html'
-if (-not (Test-Path -LiteralPath $html)) {
-  Write-Host 'RIFD.html was not found. Extract all repository files first.'
+$htmlPath = Join-Path $root 'RIFD.html'
+if (!(Test-Path -LiteralPath $htmlPath)) {
+  Write-Host 'RIFD.html is missing. Extract the complete ZIP first.'
   exit 1
 }
 $listener = $null
 $port = 0
 foreach ($candidate in 8765..8770) {
-  $tryListener = New-Object System.Net.HttpListener
-  $tryListener.Prefixes.Add("http://127.0.0.1:$candidate/")
+  $attempt = $null
   try {
-    $tryListener.Start()
-    $listener = $tryListener
-    $port = $candidate
+    $attempt = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, [int]$candidate)
+    $attempt.Start()
+    $listener = $attempt
+    $port = [int]$candidate
     break
-  } catch { $tryListener.Close() }
+  } catch {
+    if ($attempt) { try { $attempt.Stop() } catch {} }
+  }
 }
-if (-not $listener) {
-  Write-Host 'Unable to listen on ports 8765 to 8770. Close any prior RIFD window.'
+if (!$listener) {
+  Write-Host 'Unable to start local port 8765-8770. Close older RIFD window.'
   exit 1
 }
-$url = "http://127.0.0.1:$port/"
-Write-Host ('RIFD local demo: ' + $url)
-if ($port -ne 8765) { Write-Host 'Different port: local browser data may appear separate.' }
-Write-Host 'Keep this window running. Ctrl+C to stop the local server.'
-try { Start-Process $url } catch { Write-Host ('Open ' + $url + ' in Chrome/Edge.') }
+$baseUrl = "http://127.0.0.1:$port/"
+Write-Host ('RIFD is ready at ' + $baseUrl)
+if ($port -ne 8765) {
+  Write-Host 'NOTICE: A different port means separate local browser storage.'
+}
+Write-Host 'Keep this window open while using RIFD. Ctrl+C to stop.'
+try { Start-Process $baseUrl } catch { Write-Host ('Open this URL in Edge/Chrome: ' + $baseUrl) }
 try {
-  while ($listener.IsListening) {
-    $context = $listener.GetContext()
+  while ($true) {
+    $client = $listener.AcceptTcpClient()
     try {
-      $req = $context.Request
-      $res = $context.Response
-      if (($req.HttpMethod -eq 'GET' -or $req.HttpMethod -eq 'HEAD') -and
-        @('/', '/RIFD.html', '/index.html').Contains($req.Url.AbsolutePath)) {
-        $data = [System.IO.File]::ReadAllBytes($html)
-        $res.StatusCode = 200
-        $res.ContentType = 'text/html; charset=utf-8'
-      } else {
-        $data = [System.Text.Encoding]::UTF8.GetBytes('Not Found')
-        $res.StatusCode = 404
-        $res.ContentType = 'text/plain; charset=utf-8'
+      $client.ReceiveTimeout = 7000
+      $client.SendTimeout = 7000
+      $stream = $client.GetStream()
+      $stream.ReadTimeout = 7000
+      $reader = [System.IO.StreamReader]::new($stream, [System.Text.Encoding]::ASCII, $false, 1024, $true)
+      $first = $reader.ReadLine()
+      if (!$first) { continue }
+      while ($true) {
+        $line = $reader.ReadLine()
+        if ($null -eq $line -or $line -eq '') { break }
       }
-      $res.Headers.Add('Cache-Control', 'no-store')
-      $res.ContentLength64 = $data.Length
-      if ($req.HttpMethod -ne 'HEAD') { $res.OutputStream.Write($data, 0, $data.Length) }
+      $parts = $first -split ' '
+      $method = $parts[0]
+      $path = if ($parts.Length -gt 1) { ($parts[1] -split '\?')[0] } else { '/' }
+      if (($method -eq 'GET' -or $method -eq 'HEAD') -and
+          @('/', '/RIFD.html', '/index.html').Contains($path)) {
+        $body = [System.IO.File]::ReadAllBytes($htmlPath)
+        $status = '200 OK'
+        $mime = 'text/html; charset=utf-8'
+      } else {
+        $body = [System.Text.Encoding]::UTF8.GetBytes('Not found')
+        $status = '404 Not Found'
+        $mime = 'text/plain; charset=utf-8'
+      }
+      $nl = [Environment]::NewLine
+      $header = 'HTTP/1.1 ' + $status + $nl +
+        'Content-Type: ' + $mime + $nl +
+        'Content-Length: ' + $body.Length + $nl +
+        'Cache-Control: no-store' + $nl +
+        'X-Content-Type-Options: nosniff' + $nl +
+        'Connection: close' + $nl + $nl
+      $hb = [System.Text.Encoding]::ASCII.GetBytes($header)
+      $stream.Write($hb, 0, $hb.Length)
+      if ($method -ne 'HEAD') { $stream.Write($body, 0, $body.Length) }
+      $stream.Flush()
     } catch {
-      Write-Host ('Request failed: ' + $_.Exception.Message)
+      Write-Host ('Local request error: ' + $_.Exception.Message)
     } finally {
-      try { $context.Response.OutputStream.Close() } catch {}
+      if ($client) { $client.Close() }
     }
   }
 } finally {
   $listener.Stop()
-  $listener.Close()
 }
