@@ -32,8 +32,7 @@
 | `site/index.html` | موقع GitHub Pages (ملف HTML مستقل) |
 | `RIFD.html` | نسخة التشغيل المحلي |
 | `RIFD-START.bat` و `Run-RIFD.ps1` | تشغيل محلي على ويندوز دون تثبيت Node/Python |
-| `assets/` | ملفات الشعار والأيقونة |
-| `docs/` | معاينات الواجهات |
+| `assets/` | أيقونة PNG ونسختان من الشعار بصيغة WebP |
 | `.github/workflows/deploy.yml` | فحص JavaScript ثم نشر Pages |
 | `scripts/check.cjs` | فحص سلامة الملف، بدون اعتماديات خارجية |
 
